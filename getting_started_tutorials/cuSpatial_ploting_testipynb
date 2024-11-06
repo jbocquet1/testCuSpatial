@@ -1,0 +1,1130 @@
+{
+  "nbformat": 4,
+  "nbformat_minor": 0,
+  "metadata": {
+    "colab": {
+      "provenance": [],
+      "gpuType": "T4",
+      "include_colab_link": true
+    },
+    "kernelspec": {
+      "name": "python3",
+      "display_name": "Python 3"
+    },
+    "accelerator": "GPU"
+  },
+  "cells": [
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "view-in-github",
+        "colab_type": "text"
+      },
+      "source": [
+        "<a href=\"https://colab.research.google.com/github/jbocquet1/testCuSpatial/blob/testCode/getting_started_tutorials/cuSpatial_ploting_testipynb\" target=\"_parent\"><img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Open In Colab\"/></a>"
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "scfLT2i0MLyD"
+      },
+      "source": [
+        "<a target=\"_blank\" href=\"https://colab.research.google.com/github/rapidsai-community/showcase/blob/main/getting_started_tutorials/rapids-pip-colab-template.ipynb\">\n",
+        "  <img src=\"https://colab.research.google.com/assets/colab-badge.svg\" alt=\"Install RAPIDS into Colab\"/>\n",
+        "</a>\n",
+        "\n",
+        "# RAPIDS cuDF is now already on your Colab instance!\n",
+        "RAPIDS cuDF is preinstalled on Google Colab and instantly accelerates Pandas with zero code changes. [You can quickly get started with our tutorial notebook](https://nvda.ws/rapids-cudf). This notebook template is for users who want to utilize the full suite of the RAPIDS libraries for their workflows on Colab.  \n",
+        "\n",
+        "# Environment Sanity Check #\n",
+        "\n",
+        "Click the _Runtime_ dropdown at the top of the page, then _Change Runtime Type_ and confirm the instance type is _GPU_.\n",
+        "\n",
+        "You can check the output of `!nvidia-smi` to check which GPU you have.  Please uncomment the cell below if you'd like to do that.  Currently, RAPIDS runs on all available Colab GPU instances."
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "67T0090Jk2KL"
+      },
+      "source": [
+        "# !nvidia-smi"
+      ],
+      "execution_count": 3,
+      "outputs": []
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "U_v33LnDVNo3"
+      },
+      "source": [
+        "#Setup:\n",
+        "This set up script:\n",
+        "\n",
+        "1. Checks to make sure that the GPU is RAPIDS compatible\n",
+        "1. Pip Installs the RAPIDS' libraries, which are:\n",
+        "  1. cuDF\n",
+        "  1. cuML\n",
+        "  1. cuGraph\n",
+        "  1. cuSpatial\n",
+        "  1. cuxFilter\n",
+        "  1. cuCIM\n",
+        "  1. xgboost\n",
+        "\n",
+        "# Controlling Which RAPIDS Version is Installed\n",
+        "This line in the cell below, `!python rapidsai-csp-utils/colab/pip-install.py`, kicks off the RAPIDS installation script.  You can control the RAPIDS version installed by adding either `latest`, `nightlies` or the default/blank option.  Example:\n",
+        "\n",
+        "`!python rapidsai-csp-utils/colab/pip-install.py <option>`\n",
+        "\n",
+        "You can now tell the script to install:\n",
+        "1. **RAPIDS + Colab Default Version**, by leaving the install script option blank (or giving an invalid option), adds the rest of the RAPIDS libraries to the RAPIDS cuDF library preinstalled on Colab.  **This is the default and recommended version.**  Example: `!python rapidsai-csp-utils/colab/pip-install.py`\n",
+        "1. **Latest known working RAPIDS stable version**, by using the option `latest` upgrades all RAPIDS labraries to the latest working RAPIDS stable version.  Usually early access for future RAPIDS+Colab functionality - some functionality may not work, but can be same as the default version. Example: `!python rapidsai-csp-utils/colab/pip-install.py latest`\n",
+        "1. **the current nightlies version**, by using the option, `nightlies`, installs current RAPIDS nightlies version.  For RAPIDS Developer use - **not recommended/untested**.  Example: `!python rapidsai-csp-utils/colab/pip-install.py nightlies`\n",
+        "\n",
+        "\n",
+        "**This will complete in about 5-6 minutes**"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "B0C8IV5TQnjN",
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "outputId": "9645a560-06d9-4488-bcb1-2e715bbb2c5b"
+      },
+      "source": [
+        "# This get the RAPIDS-Colab install files and test check your GPU.  Run this and the next cell only.\n",
+        "# Please read the output of this cell.  If your Colab Instance is not RAPIDS compatible, it will warn you and give you remediation steps.\n",
+        "!git clone https://github.com/rapidsai/rapidsai-csp-utils.git\n",
+        "!python rapidsai-csp-utils/colab/pip-install.py\n"
+      ],
+      "execution_count": 4,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "fatal: destination path 'rapidsai-csp-utils' already exists and is not an empty directory.\n",
+            "Collecting pynvml\n",
+            "  Using cached pynvml-11.5.3-py3-none-any.whl.metadata (8.8 kB)\n",
+            "Using cached pynvml-11.5.3-py3-none-any.whl (53 kB)\n",
+            "Installing collected packages: pynvml\n",
+            "Successfully installed pynvml-11.5.3\n",
+            "Installing RAPIDS remaining 24.10.* libraries\n",
+            "Looking in indexes: https://pypi.org/simple, https://pypi.nvidia.com\n",
+            "Collecting cudf-cu12==24.10.*\n",
+            "  Downloading https://pypi.nvidia.com/cudf-cu12/cudf_cu12-24.10.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (24.9 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.9/24.9 MB 78.7 MB/s eta 0:00:00\n",
+            "Collecting cuml-cu12==24.10.*\n",
+            "  Using cached https://pypi.nvidia.com/cuml-cu12/cuml_cu12-24.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (567.7 MB)\n",
+            "Collecting cugraph-cu12==24.10.*\n",
+            "  Using cached https://pypi.nvidia.com/cugraph-cu12/cugraph_cu12-24.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (1315.2 MB)\n",
+            "Collecting cuspatial-cu12==24.10.*\n",
+            "  Using cached https://pypi.nvidia.com/cuspatial-cu12/cuspatial_cu12-24.10.0-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (4.3 MB)\n",
+            "Collecting cuproj-cu12==24.10.*\n",
+            "  Using cached https://pypi.nvidia.com/cuproj-cu12/cuproj_cu12-24.10.0-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (915 kB)\n",
+            "Collecting cuxfilter-cu12==24.10.*\n",
+            "  Using cached https://pypi.nvidia.com/cuxfilter-cu12/cuxfilter_cu12-24.10.0-py3-none-any.whl (83 kB)\n",
+            "Collecting cucim-cu12==24.10.*\n",
+            "  Using cached https://pypi.nvidia.com/cucim-cu12/cucim_cu12-24.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (5.6 MB)\n",
+            "Collecting pylibraft-cu12==24.10.*\n",
+            "  Downloading https://pypi.nvidia.com/pylibraft-cu12/pylibraft_cu12-24.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (453.1 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 453.1/453.1 MB 3.5 MB/s eta 0:00:00\n",
+            "Collecting raft-dask-cu12==24.10.*\n",
+            "  Using cached https://pypi.nvidia.com/raft-dask-cu12/raft_dask_cu12-24.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (196.9 MB)\n",
+            "Collecting nx-cugraph-cu12==24.10.*\n",
+            "  Downloading https://pypi.nvidia.com/nx-cugraph-cu12/nx_cugraph_cu12-24.10.0-py3-none-any.whl (149 kB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 149.4/149.4 kB 13.9 MB/s eta 0:00:00\n",
+            "Collecting aiohttp\n",
+            "  Downloading aiohttp-3.10.10-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.6 kB)\n",
+            "Collecting cachetools (from cudf-cu12==24.10.*)\n",
+            "  Downloading cachetools-5.5.0-py3-none-any.whl.metadata (5.3 kB)\n",
+            "Collecting cuda-python<13.0a0,>=12.0 (from cudf-cu12==24.10.*)\n",
+            "  Downloading cuda_python-12.6.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (12 kB)\n",
+            "Collecting cupy-cuda12x>=12.0.0 (from cudf-cu12==24.10.*)\n",
+            "  Downloading cupy_cuda12x-13.3.0-cp310-cp310-manylinux2014_x86_64.whl.metadata (2.7 kB)\n",
+            "Collecting fsspec>=0.6.0 (from cudf-cu12==24.10.*)\n",
+            "  Downloading fsspec-2024.10.0-py3-none-any.whl.metadata (11 kB)\n",
+            "Collecting libcudf-cu12==24.10.* (from cudf-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/libcudf-cu12/libcudf_cu12-24.10.1-py3-none-manylinux_2_28_x86_64.whl (515.1 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 515.1/515.1 MB 3.5 MB/s eta 0:00:00\n",
+            "Collecting numba>=0.57 (from cudf-cu12==24.10.*)\n",
+            "  Downloading numba-0.60.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (2.7 kB)\n",
+            "Collecting numpy<3.0a0,>=1.23 (from cudf-cu12==24.10.*)\n",
+            "  Downloading numpy-2.1.3-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (62 kB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.0/62.0 kB 5.4 MB/s eta 0:00:00\n",
+            "Collecting nvtx>=0.2.1 (from cudf-cu12==24.10.*)\n",
+            "  Downloading nvtx-0.2.10-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (740 bytes)\n",
+            "Requirement already satisfied: packaging in /usr/local/lib/python3.10/site-packages (from cudf-cu12==24.10.*) (23.2)\n",
+            "Collecting pandas<2.2.3dev0,>=2.0 (from cudf-cu12==24.10.*)\n",
+            "  Downloading pandas-2.2.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (19 kB)\n",
+            "Collecting pyarrow<18.0.0a0,>=14.0.0 (from cudf-cu12==24.10.*)\n",
+            "  Downloading pyarrow-17.0.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (3.3 kB)\n",
+            "Collecting pylibcudf-cu12==24.10.* (from cudf-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/pylibcudf-cu12/pylibcudf_cu12-24.10.1-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (20.5 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 20.5/20.5 MB 85.2 MB/s eta 0:00:00\n",
+            "Collecting pynvjitlink-cu12 (from cudf-cu12==24.10.*)\n",
+            "  Downloading pynvjitlink_cu12-0.4.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting rich (from cudf-cu12==24.10.*)\n",
+            "  Downloading rich-13.9.4-py3-none-any.whl.metadata (18 kB)\n",
+            "Collecting rmm-cu12==24.10.* (from cudf-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/rmm-cu12/rmm_cu12-24.10.0-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (1.7 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 49.9 MB/s eta 0:00:00\n",
+            "Collecting typing_extensions>=4.0.0 (from cudf-cu12==24.10.*)\n",
+            "  Downloading typing_extensions-4.12.2-py3-none-any.whl.metadata (3.0 kB)\n",
+            "Collecting cuvs-cu12==24.10.* (from cuml-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/cuvs-cu12/cuvs_cu12-24.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (836.6 MB)\n",
+            "Collecting dask-cuda==24.10.* (from cuml-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/dask-cuda/dask_cuda-24.10.0-py3-none-any.whl (133 kB)\n",
+            "Collecting dask-cudf-cu12==24.10.* (from cuml-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/dask-cudf-cu12/dask_cudf_cu12-24.10.1-py3-none-any.whl (56 kB)\n",
+            "Collecting joblib>=0.11 (from cuml-cu12==24.10.*)\n",
+            "  Downloading joblib-1.4.2-py3-none-any.whl.metadata (5.4 kB)\n",
+            "Collecting nvidia-cublas-cu12 (from cuml-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/nvidia-cublas-cu12/nvidia_cublas_cu12-12.6.3.3-py3-none-manylinux2014_x86_64.whl (393.1 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 393.1/393.1 MB 3.9 MB/s eta 0:00:00\n",
+            "Collecting nvidia-cufft-cu12 (from cuml-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/nvidia-cufft-cu12/nvidia_cufft_cu12-11.3.0.4-py3-none-manylinux2014_x86_64.whl (200.2 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 200.2/200.2 MB 6.3 MB/s eta 0:00:00\n",
+            "Collecting nvidia-curand-cu12 (from cuml-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/nvidia-curand-cu12/nvidia_curand_cu12-10.3.7.77-py3-none-manylinux2014_x86_64.whl (56.3 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 56.3/56.3 MB 11.8 MB/s eta 0:00:00\n",
+            "Collecting nvidia-cusolver-cu12 (from cuml-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/nvidia-cusolver-cu12/nvidia_cusolver_cu12-11.7.1.2-py3-none-manylinux2014_x86_64.whl (158.2 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 158.2/158.2 MB 6.4 MB/s eta 0:00:00\n",
+            "Collecting nvidia-cusparse-cu12 (from cuml-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/nvidia-cusparse-cu12/nvidia_cusparse_cu12-12.5.4.2-py3-none-manylinux2014_x86_64.whl (216.6 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 216.6/216.6 MB 5.8 MB/s eta 0:00:00\n",
+            "Collecting rapids-dask-dependency==24.10.* (from cuml-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/rapids-dask-dependency/rapids_dask_dependency-24.10.0-py3-none-any.whl (15 kB)\n",
+            "Collecting scipy>=1.8.0 (from cuml-cu12==24.10.*)\n",
+            "  Downloading scipy-1.14.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.8/60.8 kB 4.8 MB/s eta 0:00:00\n",
+            "Collecting treelite==4.3.0 (from cuml-cu12==24.10.*)\n",
+            "  Using cached treelite-4.3.0-py3-none-manylinux2014_x86_64.whl.metadata (1.5 kB)\n",
+            "Collecting pylibcugraph-cu12==24.10.* (from cugraph-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/pylibcugraph-cu12/pylibcugraph_cu12-24.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (1315.8 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.3/1.3 GB 913.1 kB/s eta 0:00:00\n",
+            "Collecting ucx-py-cu12==0.40.* (from cugraph-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/ucx-py-cu12/ucx_py_cu12-0.40.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl (2.1 MB)\n",
+            "Collecting geopandas>=1.0.0 (from cuspatial-cu12==24.10.*)\n",
+            "  Downloading geopandas-1.0.1-py3-none-any.whl.metadata (2.2 kB)\n",
+            "Collecting libcuspatial-cu12==24.10.* (from cuspatial-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/libcuspatial-cu12/libcuspatial_cu12-24.10.0-py3-none-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (17.7 MB)\n",
+            "Collecting bokeh>=3.1 (from cuxfilter-cu12==24.10.*)\n",
+            "  Downloading bokeh-3.6.0-py3-none-any.whl.metadata (12 kB)\n",
+            "Collecting datashader>=0.15 (from cuxfilter-cu12==24.10.*)\n",
+            "  Using cached datashader-0.16.3-py2.py3-none-any.whl.metadata (12 kB)\n",
+            "Collecting holoviews>=1.16.0 (from cuxfilter-cu12==24.10.*)\n",
+            "  Downloading holoviews-1.20.0-py3-none-any.whl.metadata (9.9 kB)\n",
+            "Collecting jupyter-server-proxy (from cuxfilter-cu12==24.10.*)\n",
+            "  Using cached jupyter_server_proxy-4.4.0-py3-none-any.whl.metadata (8.7 kB)\n",
+            "Collecting panel>=1.0 (from cuxfilter-cu12==24.10.*)\n",
+            "  Using cached panel-1.5.3-py3-none-any.whl.metadata (15 kB)\n",
+            "Collecting click (from cucim-cu12==24.10.*)\n",
+            "  Downloading click-8.1.7-py3-none-any.whl.metadata (3.0 kB)\n",
+            "Collecting lazy-loader>=0.1 (from cucim-cu12==24.10.*)\n",
+            "  Downloading lazy_loader-0.4-py3-none-any.whl.metadata (7.6 kB)\n",
+            "Collecting scikit-image<0.25.0a0,>=0.19.0 (from cucim-cu12==24.10.*)\n",
+            "  Downloading scikit_image-0.24.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (14 kB)\n",
+            "Collecting distributed-ucxx-cu12==0.40.* (from raft-dask-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/distributed-ucxx-cu12/distributed_ucxx_cu12-0.40.0-py3-none-any.whl (24 kB)\n",
+            "Collecting networkx>=3.0 (from nx-cugraph-cu12==24.10.*)\n",
+            "  Downloading networkx-3.4.2-py3-none-any.whl.metadata (6.3 kB)\n",
+            "Collecting pynvml<11.5,>=11.0.0 (from dask-cuda==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Using cached pynvml-11.4.1-py3-none-any.whl.metadata (7.7 kB)\n",
+            "Collecting zict>=2.0.0 (from dask-cuda==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Using cached zict-3.0.0-py2.py3-none-any.whl.metadata (899 bytes)\n",
+            "Collecting ucxx-cu12==0.40.* (from distributed-ucxx-cu12==0.40.*->raft-dask-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/ucxx-cu12/ucxx_cu12-0.40.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (722 kB)\n",
+            "Collecting dask==2024.9.0 (from rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Using cached dask-2024.9.0-py3-none-any.whl.metadata (3.7 kB)\n",
+            "Collecting distributed==2024.9.0 (from rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Using cached distributed-2024.9.0-py3-none-any.whl.metadata (3.3 kB)\n",
+            "Collecting dask-expr==1.1.14 (from rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Using cached dask_expr-1.1.14-py3-none-any.whl.metadata (2.5 kB)\n",
+            "Collecting libucx-cu12<1.18,>=1.15.0 (from ucx-py-cu12==0.40.*->cugraph-cu12==24.10.*)\n",
+            "  Using cached libucx_cu12-1.17.0-py3-none-manylinux_2_28_x86_64.whl.metadata (2.9 kB)\n",
+            "Collecting cloudpickle>=3.0.0 (from dask==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading cloudpickle-3.1.0-py3-none-any.whl.metadata (7.0 kB)\n",
+            "Collecting partd>=1.4.0 (from dask==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading partd-1.4.2-py3-none-any.whl.metadata (4.6 kB)\n",
+            "Collecting pyyaml>=5.3.1 (from dask==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading PyYAML-6.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.1 kB)\n",
+            "Collecting toolz>=0.10.0 (from dask==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading toolz-1.0.0-py3-none-any.whl.metadata (5.1 kB)\n",
+            "Collecting importlib-metadata>=4.13.0 (from dask==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading importlib_metadata-8.5.0-py3-none-any.whl.metadata (4.8 kB)\n",
+            "Collecting jinja2>=2.10.3 (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading jinja2-3.1.4-py3-none-any.whl.metadata (2.6 kB)\n",
+            "Collecting locket>=1.0.0 (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading locket-1.0.0-py2.py3-none-any.whl.metadata (2.8 kB)\n",
+            "Collecting msgpack>=1.0.2 (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading msgpack-1.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (8.4 kB)\n",
+            "Collecting psutil>=5.8.0 (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading psutil-6.1.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (22 kB)\n",
+            "Collecting sortedcontainers>=2.0.5 (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl.metadata (10 kB)\n",
+            "Collecting tblib>=1.6.0 (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Using cached tblib-3.0.0-py3-none-any.whl.metadata (25 kB)\n",
+            "Collecting tornado>=6.2.0 (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading tornado-6.4.1-cp38-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (2.5 kB)\n",
+            "Requirement already satisfied: urllib3>=1.26.5 in /usr/local/lib/python3.10/site-packages (from distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*) (2.1.0)\n",
+            "Collecting libucxx-cu12==0.40.* (from ucxx-cu12==0.40.*->distributed-ucxx-cu12==0.40.*->raft-dask-cu12==24.10.*)\n",
+            "  Using cached https://pypi.nvidia.com/libucxx-cu12/libucxx_cu12-0.40.0-py3-none-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (511 kB)\n",
+            "Collecting aiohappyeyeballs>=2.3.0 (from aiohttp)\n",
+            "  Downloading aiohappyeyeballs-2.4.3-py3-none-any.whl.metadata (6.1 kB)\n",
+            "Collecting aiosignal>=1.1.2 (from aiohttp)\n",
+            "  Downloading aiosignal-1.3.1-py3-none-any.whl.metadata (4.0 kB)\n",
+            "Collecting attrs>=17.3.0 (from aiohttp)\n",
+            "  Downloading attrs-24.2.0-py3-none-any.whl.metadata (11 kB)\n",
+            "Collecting frozenlist>=1.1.1 (from aiohttp)\n",
+            "  Downloading frozenlist-1.5.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (13 kB)\n",
+            "Collecting multidict<7.0,>=4.5 (from aiohttp)\n",
+            "  Downloading multidict-6.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.0 kB)\n",
+            "Collecting yarl<2.0,>=1.12.0 (from aiohttp)\n",
+            "  Downloading yarl-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (64 kB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.8/64.8 kB 5.1 MB/s eta 0:00:00\n",
+            "Collecting async-timeout<5.0,>=4.0 (from aiohttp)\n",
+            "  Downloading async_timeout-4.0.3-py3-none-any.whl.metadata (4.2 kB)\n",
+            "Collecting contourpy>=1.2 (from bokeh>=3.1->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading contourpy-1.3.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.4 kB)\n",
+            "Collecting pillow>=7.1.0 (from bokeh>=3.1->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading pillow-11.0.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (9.1 kB)\n",
+            "Collecting xyzservices>=2021.09.1 (from bokeh>=3.1->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading xyzservices-2024.9.0-py3-none-any.whl.metadata (4.1 kB)\n",
+            "Collecting fastrlock>=0.5 (from cupy-cuda12x>=12.0.0->cudf-cu12==24.10.*)\n",
+            "  Downloading fastrlock-0.8.2-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl.metadata (9.3 kB)\n",
+            "Collecting colorcet (from datashader>=0.15->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading colorcet-3.1.0-py3-none-any.whl.metadata (6.3 kB)\n",
+            "Collecting multipledispatch (from datashader>=0.15->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading multipledispatch-1.0.0-py3-none-any.whl.metadata (3.8 kB)\n",
+            "Collecting param (from datashader>=0.15->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading param-2.1.1-py3-none-any.whl.metadata (7.2 kB)\n",
+            "Collecting pyct (from datashader>=0.15->cuxfilter-cu12==24.10.*)\n",
+            "  Using cached pyct-0.5.0-py2.py3-none-any.whl.metadata (7.4 kB)\n",
+            "Requirement already satisfied: requests in /usr/local/lib/python3.10/site-packages (from datashader>=0.15->cuxfilter-cu12==24.10.*) (2.31.0)\n",
+            "Collecting xarray (from datashader>=0.15->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading xarray-2024.10.0-py3-none-any.whl.metadata (11 kB)\n",
+            "Collecting pyogrio>=0.7.2 (from geopandas>=1.0.0->cuspatial-cu12==24.10.*)\n",
+            "  Downloading pyogrio-0.10.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (5.5 kB)\n",
+            "Collecting pyproj>=3.3.0 (from geopandas>=1.0.0->cuspatial-cu12==24.10.*)\n",
+            "  Downloading pyproj-3.7.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (31 kB)\n",
+            "Collecting shapely>=2.0.0 (from geopandas>=1.0.0->cuspatial-cu12==24.10.*)\n",
+            "  Downloading shapely-2.0.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.0 kB)\n",
+            "Collecting pyviz-comms>=2.1 (from holoviews>=1.16.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading pyviz_comms-3.0.3-py3-none-any.whl.metadata (7.7 kB)\n",
+            "Collecting llvmlite<0.44,>=0.43.0dev0 (from numba>=0.57->cudf-cu12==24.10.*)\n",
+            "  Downloading llvmlite-0.43.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.8 kB)\n",
+            "Collecting numpy<3.0a0,>=1.23 (from cudf-cu12==24.10.*)\n",
+            "  Downloading numpy-2.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (60 kB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.9/60.9 kB 5.6 MB/s eta 0:00:00\n",
+            "Collecting python-dateutil>=2.8.2 (from pandas<2.2.3dev0,>=2.0->cudf-cu12==24.10.*)\n",
+            "  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)\n",
+            "Collecting pytz>=2020.1 (from pandas<2.2.3dev0,>=2.0->cudf-cu12==24.10.*)\n",
+            "  Downloading pytz-2024.2-py2.py3-none-any.whl.metadata (22 kB)\n",
+            "Collecting tzdata>=2022.7 (from pandas<2.2.3dev0,>=2.0->cudf-cu12==24.10.*)\n",
+            "  Downloading tzdata-2024.2-py2.py3-none-any.whl.metadata (1.4 kB)\n",
+            "Collecting bleach (from panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading bleach-6.2.0-py3-none-any.whl.metadata (30 kB)\n",
+            "Collecting linkify-it-py (from panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading linkify_it_py-2.0.3-py3-none-any.whl.metadata (8.5 kB)\n",
+            "Collecting markdown (from panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading Markdown-3.7-py3-none-any.whl.metadata (7.0 kB)\n",
+            "Collecting markdown-it-py (from panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading markdown_it_py-3.0.0-py3-none-any.whl.metadata (6.9 kB)\n",
+            "Collecting mdit-py-plugins (from panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading mdit_py_plugins-0.4.2-py3-none-any.whl.metadata (2.8 kB)\n",
+            "Requirement already satisfied: tqdm in /usr/local/lib/python3.10/site-packages (from panel>=1.0->cuxfilter-cu12==24.10.*) (4.66.1)\n",
+            "Collecting imageio>=2.33 (from scikit-image<0.25.0a0,>=0.19.0->cucim-cu12==24.10.*)\n",
+            "  Downloading imageio-2.36.0-py3-none-any.whl.metadata (5.2 kB)\n",
+            "Collecting tifffile>=2022.8.12 (from scikit-image<0.25.0a0,>=0.19.0->cucim-cu12==24.10.*)\n",
+            "  Downloading tifffile-2024.9.20-py3-none-any.whl.metadata (32 kB)\n",
+            "Requirement already satisfied: idna>=2.0 in /usr/local/lib/python3.10/site-packages (from yarl<2.0,>=1.12.0->aiohttp) (3.6)\n",
+            "Collecting propcache>=0.2.0 (from yarl<2.0,>=1.12.0->aiohttp)\n",
+            "  Downloading propcache-0.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (7.7 kB)\n",
+            "Collecting jupyter-server>=1.24.0 (from jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jupyter_server-2.14.2-py3-none-any.whl.metadata (8.4 kB)\n",
+            "Collecting simpervisor>=1.0.0 (from jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Using cached simpervisor-1.0.0-py3-none-any.whl.metadata (4.3 kB)\n",
+            "Collecting traitlets>=5.1.0 (from jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading traitlets-5.14.3-py3-none-any.whl.metadata (10 kB)\n",
+            "Collecting nvidia-nvjitlink-cu12 (from nvidia-cufft-cu12->cuml-cu12==24.10.*)\n",
+            "  Downloading https://pypi.nvidia.com/nvidia-nvjitlink-cu12/nvidia_nvjitlink_cu12-12.6.77-py3-none-manylinux2014_x86_64.whl (19.7 MB)\n",
+            "     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 19.7/19.7 MB 86.0 MB/s eta 0:00:00\n",
+            "Collecting pygments<3.0.0,>=2.13.0 (from rich->cudf-cu12==24.10.*)\n",
+            "  Downloading pygments-2.18.0-py3-none-any.whl.metadata (2.5 kB)\n",
+            "Collecting MarkupSafe>=2.0 (from jinja2>=2.10.3->distributed==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading MarkupSafe-3.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.0 kB)\n",
+            "Collecting anyio>=3.1.0 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading anyio-4.6.2.post1-py3-none-any.whl.metadata (4.7 kB)\n",
+            "Collecting argon2-cffi>=21.1 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading argon2_cffi-23.1.0-py3-none-any.whl.metadata (5.2 kB)\n",
+            "Collecting jupyter-client>=7.4.4 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jupyter_client-8.6.3-py3-none-any.whl.metadata (8.3 kB)\n",
+            "Collecting jupyter-core!=5.0.*,>=4.12 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jupyter_core-5.7.2-py3-none-any.whl.metadata (3.4 kB)\n",
+            "Collecting jupyter-events>=0.9.0 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jupyter_events-0.10.0-py3-none-any.whl.metadata (5.9 kB)\n",
+            "Collecting jupyter-server-terminals>=0.4.4 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jupyter_server_terminals-0.5.3-py3-none-any.whl.metadata (5.6 kB)\n",
+            "Collecting nbconvert>=6.4.4 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading nbconvert-7.16.4-py3-none-any.whl.metadata (8.5 kB)\n",
+            "Collecting nbformat>=5.3.0 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading nbformat-5.10.4-py3-none-any.whl.metadata (3.6 kB)\n",
+            "Collecting overrides>=5.0 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading overrides-7.7.0-py3-none-any.whl.metadata (5.8 kB)\n",
+            "Collecting prometheus-client>=0.9 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading prometheus_client-0.21.0-py3-none-any.whl.metadata (1.8 kB)\n",
+            "Collecting pyzmq>=24 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading pyzmq-26.2.0-cp310-cp310-manylinux_2_28_x86_64.whl.metadata (6.2 kB)\n",
+            "Collecting send2trash>=1.8.2 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading Send2Trash-1.8.3-py3-none-any.whl.metadata (4.0 kB)\n",
+            "Collecting terminado>=0.8.3 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading terminado-0.18.1-py3-none-any.whl.metadata (5.8 kB)\n",
+            "Collecting websocket-client>=1.7 (from jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading websocket_client-1.8.0-py3-none-any.whl.metadata (8.0 kB)\n",
+            "Collecting mdurl~=0.1 (from markdown-it-py->panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)\n",
+            "Requirement already satisfied: certifi in /usr/local/lib/python3.10/site-packages (from pyogrio>=0.7.2->geopandas>=1.0.0->cuspatial-cu12==24.10.*) (2023.11.17)\n",
+            "Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas<2.2.3dev0,>=2.0->cudf-cu12==24.10.*)\n",
+            "  Downloading six-1.16.0-py2.py3-none-any.whl.metadata (1.8 kB)\n",
+            "Collecting webencodings (from bleach->panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading webencodings-0.5.1-py2.py3-none-any.whl.metadata (2.1 kB)\n",
+            "Collecting uc-micro-py (from linkify-it-py->panel>=1.0->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading uc_micro_py-1.0.3-py3-none-any.whl.metadata (2.0 kB)\n",
+            "Requirement already satisfied: charset-normalizer<4,>=2 in /usr/local/lib/python3.10/site-packages (from requests->datashader>=0.15->cuxfilter-cu12==24.10.*) (3.3.2)\n",
+            "Collecting sniffio>=1.1 (from anyio>=3.1.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)\n",
+            "Collecting exceptiongroup>=1.0.2 (from anyio>=3.1.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading exceptiongroup-1.2.2-py3-none-any.whl.metadata (6.6 kB)\n",
+            "Collecting argon2-cffi-bindings (from argon2-cffi>=21.1->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading argon2_cffi_bindings-21.2.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.7 kB)\n",
+            "Collecting zipp>=3.20 (from importlib-metadata>=4.13.0->dask==2024.9.0->rapids-dask-dependency==24.10.*->cuml-cu12==24.10.*)\n",
+            "  Downloading zipp-3.20.2-py3-none-any.whl.metadata (3.7 kB)\n",
+            "Requirement already satisfied: platformdirs>=2.5 in /usr/local/lib/python3.10/site-packages (from jupyter-core!=5.0.*,>=4.12->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*) (4.1.0)\n",
+            "Collecting jsonschema>=4.18.0 (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jsonschema-4.23.0-py3-none-any.whl.metadata (7.9 kB)\n",
+            "Collecting python-json-logger>=2.0.4 (from jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading python_json_logger-2.0.7-py3-none-any.whl.metadata (6.5 kB)\n",
+            "Collecting referencing (from jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading referencing-0.35.1-py3-none-any.whl.metadata (2.8 kB)\n",
+            "Collecting rfc3339-validator (from jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl.metadata (1.5 kB)\n",
+            "Collecting rfc3986-validator>=0.1.1 (from jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading rfc3986_validator-0.1.1-py2.py3-none-any.whl.metadata (1.7 kB)\n",
+            "Collecting beautifulsoup4 (from nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading beautifulsoup4-4.12.3-py3-none-any.whl.metadata (3.8 kB)\n",
+            "Collecting defusedxml (from nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading defusedxml-0.7.1-py2.py3-none-any.whl.metadata (32 kB)\n",
+            "Collecting jupyterlab-pygments (from nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jupyterlab_pygments-0.3.0-py3-none-any.whl.metadata (4.4 kB)\n",
+            "Collecting mistune<4,>=2.0.3 (from nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading mistune-3.0.2-py3-none-any.whl.metadata (1.7 kB)\n",
+            "Collecting nbclient>=0.5.0 (from nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading nbclient-0.10.0-py3-none-any.whl.metadata (7.8 kB)\n",
+            "Collecting pandocfilters>=1.4.1 (from nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading pandocfilters-1.5.1-py2.py3-none-any.whl.metadata (9.0 kB)\n",
+            "Collecting tinycss2 (from nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading tinycss2-1.4.0-py3-none-any.whl.metadata (3.0 kB)\n",
+            "Collecting fastjsonschema>=2.15 (from nbformat>=5.3.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading fastjsonschema-2.20.0-py3-none-any.whl.metadata (2.1 kB)\n",
+            "Collecting ptyprocess (from terminado>=0.8.3->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading ptyprocess-0.7.0-py2.py3-none-any.whl.metadata (1.3 kB)\n",
+            "Collecting jsonschema-specifications>=2023.03.6 (from jsonschema>=4.18.0->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading jsonschema_specifications-2024.10.1-py3-none-any.whl.metadata (3.0 kB)\n",
+            "Collecting rpds-py>=0.7.1 (from jsonschema>=4.18.0->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading rpds_py-0.20.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.2 kB)\n",
+            "Collecting fqdn (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading fqdn-1.5.1-py3-none-any.whl.metadata (1.4 kB)\n",
+            "Collecting isoduration (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading isoduration-20.11.0-py3-none-any.whl.metadata (5.7 kB)\n",
+            "Requirement already satisfied: jsonpointer>1.13 in /usr/local/lib/python3.10/site-packages (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*) (2.4)\n",
+            "Collecting uri-template (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading uri_template-1.3.0-py3-none-any.whl.metadata (8.8 kB)\n",
+            "Collecting webcolors>=24.6.0 (from jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading webcolors-24.8.0-py3-none-any.whl.metadata (2.6 kB)\n",
+            "Requirement already satisfied: cffi>=1.0.1 in /usr/local/lib/python3.10/site-packages (from argon2-cffi-bindings->argon2-cffi>=21.1->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*) (1.16.0)\n",
+            "Collecting soupsieve>1.2 (from beautifulsoup4->nbconvert>=6.4.4->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading soupsieve-2.6-py3-none-any.whl.metadata (4.6 kB)\n",
+            "Requirement already satisfied: pycparser in /usr/local/lib/python3.10/site-packages (from cffi>=1.0.1->argon2-cffi-bindings->argon2-cffi>=21.1->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*) (2.21)\n",
+            "Collecting arrow>=0.15.0 (from isoduration->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading arrow-1.3.0-py3-none-any.whl.metadata (7.5 kB)\n",
+            "Collecting types-python-dateutil>=2.8.10 (from arrow>=0.15.0->isoduration->jsonschema[format-nongpl]>=4.18.0->jupyter-events>=0.9.0->jupyter-server>=1.24.0->jupyter-server-proxy->cuxfilter-cu12==24.10.*)\n",
+            "  Downloading types_python_dateutil-2.9.0.20241003-py3-none-any.whl.metadata (1.9 kB)\n",
+            "Using cached treelite-4.3.0-py3-none-manylinux2014_x86_64.whl (915 kB)\n",
+            "Using cached dask-2024.9.0-py3-none-any.whl (1.3 MB)\n",
+            "Using cached dask_expr-1.1.14-py3-none-any.whl (242 kB)\n",
+            "Using cached distributed-2024.9.0-py3-none-any.whl (1.0 MB)\n",
+            "Downloading aiohttp-3.10.10-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (1.2 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 17.1 MB/s eta 0:00:00\n",
+            "Downloading aiohappyeyeballs-2.4.3-py3-none-any.whl (14 kB)\n",
+            "Downloading aiosignal-1.3.1-py3-none-any.whl (7.6 kB)\n",
+            "Downloading async_timeout-4.0.3-py3-none-any.whl (5.7 kB)\n",
+            "Downloading attrs-24.2.0-py3-none-any.whl (63 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 63.0/63.0 kB 6.3 MB/s eta 0:00:00\n",
+            "Downloading bokeh-3.6.0-py3-none-any.whl (6.9 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 59.1 MB/s eta 0:00:00\n",
+            "Downloading click-8.1.7-py3-none-any.whl (97 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 97.9/97.9 kB 9.3 MB/s eta 0:00:00\n",
+            "Downloading cuda_python-12.6.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (24.9 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.9/24.9 MB 45.1 MB/s eta 0:00:00\n",
+            "Downloading cupy_cuda12x-13.3.0-cp310-cp310-manylinux2014_x86_64.whl (90.6 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.6/90.6 MB 9.5 MB/s eta 0:00:00\n",
+            "Using cached datashader-0.16.3-py2.py3-none-any.whl (18.3 MB)\n",
+            "Downloading frozenlist-1.5.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (241 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 241.9/241.9 kB 18.6 MB/s eta 0:00:00\n",
+            "Downloading fsspec-2024.10.0-py3-none-any.whl (179 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 179.6/179.6 kB 14.8 MB/s eta 0:00:00\n",
+            "Downloading geopandas-1.0.1-py3-none-any.whl (323 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 323.6/323.6 kB 21.4 MB/s eta 0:00:00\n",
+            "Downloading holoviews-1.20.0-py3-none-any.whl (5.0 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 5.0/5.0 MB 63.6 MB/s eta 0:00:00\n",
+            "Downloading joblib-1.4.2-py3-none-any.whl (301 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 301.8/301.8 kB 21.9 MB/s eta 0:00:00\n",
+            "Downloading lazy_loader-0.4-py3-none-any.whl (12 kB)\n",
+            "Downloading multidict-6.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (124 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 124.6/124.6 kB 10.5 MB/s eta 0:00:00\n",
+            "Downloading networkx-3.4.2-py3-none-any.whl (1.7 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 60.2 MB/s eta 0:00:00\n",
+            "Downloading numba-0.60.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (3.7 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.7/3.7 MB 68.7 MB/s eta 0:00:00\n",
+            "Downloading numpy-2.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (19.5 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 19.5/19.5 MB 22.5 MB/s eta 0:00:00\n",
+            "Downloading nvtx-0.2.10-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (582 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 582.6/582.6 kB 32.3 MB/s eta 0:00:00\n",
+            "Downloading pandas-2.2.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (13.0 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 13.0/13.0 MB 43.1 MB/s eta 0:00:00\n",
+            "Using cached panel-1.5.3-py3-none-any.whl (27.4 MB)\n",
+            "Downloading pyarrow-17.0.0-cp310-cp310-manylinux_2_28_x86_64.whl (39.9 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 39.9/39.9 MB 11.9 MB/s eta 0:00:00\n",
+            "Downloading scikit_image-0.24.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (14.9 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 14.9/14.9 MB 81.8 MB/s eta 0:00:00\n",
+            "Downloading scipy-1.14.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (41.2 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 41.2/41.2 MB 14.8 MB/s eta 0:00:00\n",
+            "Downloading typing_extensions-4.12.2-py3-none-any.whl (37 kB)\n",
+            "Downloading yarl-1.17.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (318 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 318.7/318.7 kB 19.9 MB/s eta 0:00:00\n",
+            "Downloading cachetools-5.5.0-py3-none-any.whl (9.5 kB)\n",
+            "Using cached jupyter_server_proxy-4.4.0-py3-none-any.whl (37 kB)\n",
+            "Downloading pynvjitlink_cu12-0.4.0-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (24.2 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 24.2/24.2 MB 72.3 MB/s eta 0:00:00\n",
+            "Downloading rich-13.9.4-py3-none-any.whl (242 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 242.4/242.4 kB 20.4 MB/s eta 0:00:00\n",
+            "Downloading contourpy-1.3.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (322 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 322.0/322.0 kB 23.4 MB/s eta 0:00:00\n",
+            "Downloading fastrlock-0.8.2-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_28_x86_64.whl (51 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 51.3/51.3 kB 4.3 MB/s eta 0:00:00\n",
+            "Downloading imageio-2.36.0-py3-none-any.whl (315 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 315.4/315.4 kB 22.6 MB/s eta 0:00:00\n",
+            "Downloading jinja2-3.1.4-py3-none-any.whl (133 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 133.3/133.3 kB 13.0 MB/s eta 0:00:00\n",
+            "Downloading jupyter_server-2.14.2-py3-none-any.whl (383 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 383.6/383.6 kB 32.4 MB/s eta 0:00:00\n",
+            "Using cached libucx_cu12-1.17.0-py3-none-manylinux_2_28_x86_64.whl (26.9 MB)\n",
+            "Downloading llvmlite-0.43.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (43.9 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 43.9/43.9 MB 12.9 MB/s eta 0:00:00\n",
+            "Downloading markdown_it_py-3.0.0-py3-none-any.whl (87 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.5/87.5 kB 8.5 MB/s eta 0:00:00\n",
+            "Downloading param-2.1.1-py3-none-any.whl (116 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 116.8/116.8 kB 11.6 MB/s eta 0:00:00\n",
+            "Downloading pillow-11.0.0-cp310-cp310-manylinux_2_28_x86_64.whl (4.4 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.4/4.4 MB 97.1 MB/s eta 0:00:00\n",
+            "Downloading propcache-0.2.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (208 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 208.9/208.9 kB 18.0 MB/s eta 0:00:00\n",
+            "Downloading pygments-2.18.0-py3-none-any.whl (1.2 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 62.6 MB/s eta 0:00:00\n",
+            "Using cached pynvml-11.4.1-py3-none-any.whl (46 kB)\n",
+            "Downloading pyogrio-0.10.0-cp310-cp310-manylinux_2_28_x86_64.whl (23.9 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 23.9/23.9 MB 72.7 MB/s eta 0:00:00\n",
+            "Downloading pyproj-3.7.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (9.2 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 9.2/9.2 MB 65.5 MB/s eta 0:00:00\n",
+            "Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 21.1 MB/s eta 0:00:00\n",
+            "Downloading pytz-2024.2-py2.py3-none-any.whl (508 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 508.0/508.0 kB 37.8 MB/s eta 0:00:00\n",
+            "Downloading pyviz_comms-3.0.3-py3-none-any.whl (83 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 83.5/83.5 kB 6.4 MB/s eta 0:00:00\n",
+            "Downloading PyYAML-6.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (751 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 751.2/751.2 kB 52.1 MB/s eta 0:00:00\n",
+            "Downloading shapely-2.0.6-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.5 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.5/2.5 MB 78.9 MB/s eta 0:00:00\n",
+            "Using cached simpervisor-1.0.0-py3-none-any.whl (8.3 kB)\n",
+            "Downloading tifffile-2024.9.20-py3-none-any.whl (228 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 228.2/228.2 kB 21.8 MB/s eta 0:00:00\n",
+            "Downloading toolz-1.0.0-py3-none-any.whl (56 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 56.4/56.4 kB 5.4 MB/s eta 0:00:00\n",
+            "Downloading tornado-6.4.1-cp38-abi3-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (436 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 436.8/436.8 kB 36.8 MB/s eta 0:00:00\n",
+            "Downloading traitlets-5.14.3-py3-none-any.whl (85 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.4/85.4 kB 7.0 MB/s eta 0:00:00\n",
+            "Downloading tzdata-2024.2-py2.py3-none-any.whl (346 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 346.6/346.6 kB 30.0 MB/s eta 0:00:00\n",
+            "Downloading xyzservices-2024.9.0-py3-none-any.whl (85 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 85.1/85.1 kB 8.1 MB/s eta 0:00:00\n",
+            "Using cached zict-3.0.0-py2.py3-none-any.whl (43 kB)\n",
+            "Downloading bleach-6.2.0-py3-none-any.whl (163 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 163.4/163.4 kB 15.5 MB/s eta 0:00:00\n",
+            "Downloading colorcet-3.1.0-py3-none-any.whl (260 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 260.3/260.3 kB 20.1 MB/s eta 0:00:00\n",
+            "Downloading linkify_it_py-2.0.3-py3-none-any.whl (19 kB)\n",
+            "Downloading Markdown-3.7-py3-none-any.whl (106 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 106.3/106.3 kB 10.4 MB/s eta 0:00:00\n",
+            "Downloading mdit_py_plugins-0.4.2-py3-none-any.whl (55 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 55.3/55.3 kB 5.5 MB/s eta 0:00:00\n",
+            "Downloading multipledispatch-1.0.0-py3-none-any.whl (12 kB)\n",
+            "Using cached pyct-0.5.0-py2.py3-none-any.whl (15 kB)\n",
+            "Downloading xarray-2024.10.0-py3-none-any.whl (1.2 MB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 47.0 MB/s eta 0:00:00\n",
+            "Downloading anyio-4.6.2.post1-py3-none-any.whl (90 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 90.4/90.4 kB 8.5 MB/s eta 0:00:00\n",
+            "Downloading argon2_cffi-23.1.0-py3-none-any.whl (15 kB)\n",
+            "Downloading cloudpickle-3.1.0-py3-none-any.whl (22 kB)\n",
+            "Downloading importlib_metadata-8.5.0-py3-none-any.whl (26 kB)\n",
+            "Downloading jupyter_client-8.6.3-py3-none-any.whl (106 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 106.1/106.1 kB 10.3 MB/s eta 0:00:00\n",
+            "Downloading jupyter_core-5.7.2-py3-none-any.whl (28 kB)\n",
+            "Downloading jupyter_events-0.10.0-py3-none-any.whl (18 kB)\n",
+            "Downloading jupyter_server_terminals-0.5.3-py3-none-any.whl (13 kB)\n",
+            "Downloading locket-1.0.0-py2.py3-none-any.whl (4.4 kB)\n",
+            "Downloading MarkupSafe-3.0.2-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (20 kB)\n",
+            "Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)\n",
+            "Downloading msgpack-1.1.0-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (378 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 378.0/378.0 kB 29.8 MB/s eta 0:00:00\n",
+            "Downloading nbconvert-7.16.4-py3-none-any.whl (257 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 257.4/257.4 kB 23.6 MB/s eta 0:00:00\n",
+            "Downloading nbformat-5.10.4-py3-none-any.whl (78 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.5/78.5 kB 7.2 MB/s eta 0:00:00\n",
+            "Downloading overrides-7.7.0-py3-none-any.whl (17 kB)\n",
+            "Downloading partd-1.4.2-py3-none-any.whl (18 kB)\n",
+            "Downloading prometheus_client-0.21.0-py3-none-any.whl (54 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 54.7/54.7 kB 5.0 MB/s eta 0:00:00\n",
+            "Downloading psutil-6.1.0-cp36-abi3-manylinux_2_12_x86_64.manylinux2010_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl (287 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 287.3/287.3 kB 26.2 MB/s eta 0:00:00\n",
+            "Downloading pyzmq-26.2.0-cp310-cp310-manylinux_2_28_x86_64.whl (868 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 868.8/868.8 kB 48.5 MB/s eta 0:00:00\n",
+            "Downloading Send2Trash-1.8.3-py3-none-any.whl (18 kB)\n",
+            "Downloading six-1.16.0-py2.py3-none-any.whl (11 kB)\n",
+            "Using cached sortedcontainers-2.4.0-py2.py3-none-any.whl (29 kB)\n",
+            "Using cached tblib-3.0.0-py3-none-any.whl (12 kB)\n",
+            "Downloading terminado-0.18.1-py3-none-any.whl (14 kB)\n",
+            "Downloading websocket_client-1.8.0-py3-none-any.whl (58 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 58.8/58.8 kB 5.6 MB/s eta 0:00:00\n",
+            "Downloading uc_micro_py-1.0.3-py3-none-any.whl (6.2 kB)\n",
+            "Downloading webencodings-0.5.1-py2.py3-none-any.whl (11 kB)\n",
+            "Downloading exceptiongroup-1.2.2-py3-none-any.whl (16 kB)\n",
+            "Downloading fastjsonschema-2.20.0-py3-none-any.whl (23 kB)\n",
+            "Downloading jsonschema-4.23.0-py3-none-any.whl (88 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 88.5/88.5 kB 8.3 MB/s eta 0:00:00\n",
+            "Downloading mistune-3.0.2-py3-none-any.whl (47 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 48.0/48.0 kB 4.2 MB/s eta 0:00:00\n",
+            "Downloading nbclient-0.10.0-py3-none-any.whl (25 kB)\n",
+            "Downloading pandocfilters-1.5.1-py2.py3-none-any.whl (8.7 kB)\n",
+            "Downloading python_json_logger-2.0.7-py3-none-any.whl (8.1 kB)\n",
+            "Downloading referencing-0.35.1-py3-none-any.whl (26 kB)\n",
+            "Downloading rfc3986_validator-0.1.1-py2.py3-none-any.whl (4.2 kB)\n",
+            "Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)\n",
+            "Downloading zipp-3.20.2-py3-none-any.whl (9.2 kB)\n",
+            "Downloading argon2_cffi_bindings-21.2.0-cp36-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (86 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 86.2/86.2 kB 8.6 MB/s eta 0:00:00\n",
+            "Downloading beautifulsoup4-4.12.3-py3-none-any.whl (147 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 147.9/147.9 kB 14.4 MB/s eta 0:00:00\n",
+            "Downloading defusedxml-0.7.1-py2.py3-none-any.whl (25 kB)\n",
+            "Downloading jupyterlab_pygments-0.3.0-py3-none-any.whl (15 kB)\n",
+            "Downloading ptyprocess-0.7.0-py2.py3-none-any.whl (13 kB)\n",
+            "Downloading rfc3339_validator-0.1.4-py2.py3-none-any.whl (3.5 kB)\n",
+            "Downloading tinycss2-1.4.0-py3-none-any.whl (26 kB)\n",
+            "Downloading jsonschema_specifications-2024.10.1-py3-none-any.whl (18 kB)\n",
+            "Downloading rpds_py-0.20.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (360 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 360.6/360.6 kB 28.6 MB/s eta 0:00:00\n",
+            "Downloading soupsieve-2.6-py3-none-any.whl (36 kB)\n",
+            "Downloading webcolors-24.8.0-py3-none-any.whl (15 kB)\n",
+            "Downloading fqdn-1.5.1-py3-none-any.whl (9.1 kB)\n",
+            "Downloading isoduration-20.11.0-py3-none-any.whl (11 kB)\n",
+            "Downloading uri_template-1.3.0-py3-none-any.whl (11 kB)\n",
+            "Downloading arrow-1.3.0-py3-none-any.whl (66 kB)\n",
+            "   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 66.4/66.4 kB 6.0 MB/s eta 0:00:00\n",
+            "Downloading types_python_dateutil-2.9.0.20241003-py3-none-any.whl (9.7 kB)\n",
+            "Installing collected packages: webencodings, sortedcontainers, pytz, ptyprocess, nvtx, multipledispatch, fastrlock, fastjsonschema, cuda-python, zipp, zict, xyzservices, websocket-client, webcolors, uri-template, uc-micro-py, tzdata, typing_extensions, types-python-dateutil, traitlets, tornado, toolz, tinycss2, tblib, soupsieve, sniffio, six, simpervisor, send2trash, rpds-py, rfc3986-validator, pyzmq, pyyaml, python-json-logger, pyproj, pynvml, pynvjitlink-cu12, pygments, psutil, propcache, prometheus-client, pillow, param, pandocfilters, overrides, nvidia-nvjitlink-cu12, nvidia-curand-cu12, nvidia-cublas-cu12, numpy, networkx, msgpack, mistune, mdurl, MarkupSafe, markdown, locket, llvmlite, libucx-cu12, libcudf-cu12, lazy-loader, jupyterlab-pygments, joblib, fsspec, frozenlist, fqdn, exceptiongroup, defusedxml, colorcet, cloudpickle, click, cachetools, bleach, attrs, async-timeout, aiohappyeyeballs, ucx-py-cu12, tifffile, terminado, shapely, scipy, rfc3339-validator, referencing, pyviz-comms, python-dateutil, pyogrio, pyct, pyarrow, partd, nvidia-cusparse-cu12, nvidia-cufft-cu12, numba, multidict, markdown-it-py, linkify-it-py, libucxx-cu12, libcuspatial-cu12, jupyter-core, jinja2, importlib-metadata, imageio, cupy-cuda12x, contourpy, beautifulsoup4, argon2-cffi-bindings, anyio, aiosignal, yarl, treelite, scikit-image, rmm-cu12, rich, pandas, nvidia-cusolver-cu12, mdit-py-plugins, jupyter-server-terminals, jupyter-client, jsonschema-specifications, dask, cuproj-cu12, arrow, argon2-cffi, xarray, ucxx-cu12, pylibraft-cu12, pylibcudf-cu12, jsonschema, isoduration, geopandas, distributed, dask-expr, cucim-cu12, bokeh, aiohttp, rapids-dask-dependency, pylibcugraph-cu12, panel, nbformat, datashader, cuvs-cu12, cudf-cu12, nx-cugraph-cu12, nbclient, jupyter-events, holoviews, distributed-ucxx-cu12, dask-cudf-cu12, dask-cuda, cuspatial-cu12, raft-dask-cu12, nbconvert, jupyter-server, cuml-cu12, cugraph-cu12, jupyter-server-proxy, cuxfilter-cu12\n",
+            "  Attempting uninstall: pynvml\n",
+            "    Found existing installation: pynvml 11.5.3\n",
+            "    Uninstalling pynvml-11.5.3:\n",
+            "      Successfully uninstalled pynvml-11.5.3\n",
+            "Successfully installed MarkupSafe-3.0.2 aiohappyeyeballs-2.4.3 aiohttp-3.10.10 aiosignal-1.3.1 anyio-4.6.2.post1 argon2-cffi-23.1.0 argon2-cffi-bindings-21.2.0 arrow-1.3.0 async-timeout-4.0.3 attrs-24.2.0 beautifulsoup4-4.12.3 bleach-6.2.0 bokeh-3.6.0 cachetools-5.5.0 click-8.1.7 cloudpickle-3.1.0 colorcet-3.1.0 contourpy-1.3.0 cucim-cu12-24.10.0 cuda-python-12.6.2 cudf-cu12-24.10.1 cugraph-cu12-24.10.0 cuml-cu12-24.10.0 cuproj-cu12-24.10.0 cupy-cuda12x-13.3.0 cuspatial-cu12-24.10.0 cuvs-cu12-24.10.0 cuxfilter-cu12-24.10.0 dask-2024.9.0 dask-cuda-24.10.0 dask-cudf-cu12-24.10.1 dask-expr-1.1.14 datashader-0.16.3 defusedxml-0.7.1 distributed-2024.9.0 distributed-ucxx-cu12-0.40.0 exceptiongroup-1.2.2 fastjsonschema-2.20.0 fastrlock-0.8.2 fqdn-1.5.1 frozenlist-1.5.0 fsspec-2024.10.0 geopandas-1.0.1 holoviews-1.20.0 imageio-2.36.0 importlib-metadata-8.5.0 isoduration-20.11.0 jinja2-3.1.4 joblib-1.4.2 jsonschema-4.23.0 jsonschema-specifications-2024.10.1 jupyter-client-8.6.3 jupyter-core-5.7.2 jupyter-events-0.10.0 jupyter-server-2.14.2 jupyter-server-proxy-4.4.0 jupyter-server-terminals-0.5.3 jupyterlab-pygments-0.3.0 lazy-loader-0.4 libcudf-cu12-24.10.1 libcuspatial-cu12-24.10.0 libucx-cu12-1.17.0 libucxx-cu12-0.40.0 linkify-it-py-2.0.3 llvmlite-0.43.0 locket-1.0.0 markdown-3.7 markdown-it-py-3.0.0 mdit-py-plugins-0.4.2 mdurl-0.1.2 mistune-3.0.2 msgpack-1.1.0 multidict-6.1.0 multipledispatch-1.0.0 nbclient-0.10.0 nbconvert-7.16.4 nbformat-5.10.4 networkx-3.4.2 numba-0.60.0 numpy-2.0.2 nvidia-cublas-cu12-12.6.3.3 nvidia-cufft-cu12-11.3.0.4 nvidia-curand-cu12-10.3.7.77 nvidia-cusolver-cu12-11.7.1.2 nvidia-cusparse-cu12-12.5.4.2 nvidia-nvjitlink-cu12-12.6.77 nvtx-0.2.10 nx-cugraph-cu12-24.10.0 overrides-7.7.0 pandas-2.2.2 pandocfilters-1.5.1 panel-1.5.3 param-2.1.1 partd-1.4.2 pillow-11.0.0 prometheus-client-0.21.0 propcache-0.2.0 psutil-6.1.0 ptyprocess-0.7.0 pyarrow-17.0.0 pyct-0.5.0 pygments-2.18.0 pylibcudf-cu12-24.10.1 pylibcugraph-cu12-24.10.0 pylibraft-cu12-24.10.0 pynvjitlink-cu12-0.4.0 pynvml-11.4.1 pyogrio-0.10.0 pyproj-3.7.0 python-dateutil-2.9.0.post0 python-json-logger-2.0.7 pytz-2024.2 pyviz-comms-3.0.3 pyyaml-6.0.2 pyzmq-26.2.0 raft-dask-cu12-24.10.0 rapids-dask-dependency-24.10.0 referencing-0.35.1 rfc3339-validator-0.1.4 rfc3986-validator-0.1.1 rich-13.9.4 rmm-cu12-24.10.0 rpds-py-0.20.1 scikit-image-0.24.0 scipy-1.14.1 send2trash-1.8.3 shapely-2.0.6 simpervisor-1.0.0 six-1.16.0 sniffio-1.3.1 sortedcontainers-2.4.0 soupsieve-2.6 tblib-3.0.0 terminado-0.18.1 tifffile-2024.9.20 tinycss2-1.4.0 toolz-1.0.0 tornado-6.4.1 traitlets-5.14.3 treelite-4.3.0 types-python-dateutil-2.9.0.20241003 typing_extensions-4.12.2 tzdata-2024.2 uc-micro-py-1.0.3 ucx-py-cu12-0.40.0 ucxx-cu12-0.40.0 uri-template-1.3.0 webcolors-24.8.0 webencodings-0.5.1 websocket-client-1.8.0 xarray-2024.10.0 xyzservices-2024.9.0 yarl-1.17.1 zict-3.0.0 zipp-3.20.2\n",
+            "\n",
+            "        ***********************************************************************\n",
+            "        The pip install of RAPIDS is complete.\n",
+            "        \n",
+            "        Please do not run any further installation from the conda based installation methods, as they may cause issues!\n",
+            "        \n",
+            "        Please ensure that you're pulling from the git repo to remain updated with the latest working install scripts.\n",
+            "\n",
+            "        Troubleshooting:\n",
+            "            - If there is an installation failure, please check back on RAPIDSAI owned templates/notebooks to see how to update your personal files. \n",
+            "            - If an installation failure persists when using the latest script, please make an issue on https://github.com/rapidsai-community/rapidsai-csp-utils\n",
+            "        ***********************************************************************\n",
+            "        \n"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "pZJMJ6BulmMn"
+      },
+      "source": [
+        "# RAPIDS is now installed on Colab.  \n",
+        "You can copy your code into the cells below or use the below to validate your RAPIDS installation and version.  \n",
+        "# Enjoy!"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "pip install cuxfilter"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "xlKgknfMvRYw",
+        "outputId": "ad568dd2-58c1-45f1-8e24-030274e7cbbf"
+      },
+      "execution_count": 10,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Collecting cuxfilter\n",
+            "  Downloading cuxfilter-0.0.1.tar.gz (1.1 kB)\n",
+            "  Preparing metadata (setup.py) ... \u001b[?25l\u001b[?25hdone\n",
+            "Building wheels for collected packages: cuxfilter\n",
+            "  \u001b[1;31merror\u001b[0m: \u001b[1msubprocess-exited-with-error\u001b[0m\n",
+            "  \n",
+            "  \u001b[31m×\u001b[0m \u001b[32mpython setup.py bdist_wheel\u001b[0m did not run successfully.\n",
+            "  \u001b[31m│\u001b[0m exit code: \u001b[1;36m1\u001b[0m\n",
+            "  \u001b[31m╰─>\u001b[0m See above for output.\n",
+            "  \n",
+            "  \u001b[1;35mnote\u001b[0m: This error originates from a subprocess, and is likely not a problem with pip.\n",
+            "  Building wheel for cuxfilter (setup.py) ... \u001b[?25lerror\n",
+            "\u001b[31m  ERROR: Failed building wheel for cuxfilter\u001b[0m\u001b[31m\n",
+            "\u001b[0m\u001b[?25h  Running setup.py clean for cuxfilter\n",
+            "Failed to build cuxfilter\n",
+            "\u001b[31mERROR: Could not build wheels for cuxfilter, which is required to install pyproject.toml-based projects\u001b[0m\u001b[31m\n",
+            "\u001b[0m"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "metadata": {
+        "id": "4nLrk46BllED",
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 55
+        },
+        "outputId": "873996e0-9630-4440-d95c-6026a94df521"
+      },
+      "source": [
+        "import cudf\n",
+        "cudf.__version__"
+      ],
+      "execution_count": 5,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "'24.10.01'"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "string"
+            }
+          },
+          "metadata": {},
+          "execution_count": 5
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import cuml\n",
+        "cuml.__version__"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 55
+        },
+        "id": "xgAFgI15ddf6",
+        "outputId": "d3f584b1-3ccf-4fe3-bde4-7ae2a8825bdd"
+      },
+      "execution_count": 6,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "'24.10.00'"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "string"
+            }
+          },
+          "metadata": {},
+          "execution_count": 6
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import cugraph\n",
+        "cugraph.__version__"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 55
+        },
+        "id": "JOCMWaUal1fI",
+        "outputId": "273bf18b-1240-40b1-f338-672d3a40ea51"
+      },
+      "execution_count": 7,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "'24.10.00'"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "string"
+            }
+          },
+          "metadata": {},
+          "execution_count": 7
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import cuspatial\n",
+        "cuspatial.__version__"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 55
+        },
+        "id": "AnmtYjzvVTtv",
+        "outputId": "8a76d29a-8240-44d6-b28e-2c399b04b0a3"
+      },
+      "execution_count": 8,
+      "outputs": [
+        {
+          "output_type": "execute_result",
+          "data": {
+            "text/plain": [
+              "'24.10.00'"
+            ],
+            "application/vnd.google.colaboratory.intrinsic+json": {
+              "type": "string"
+            }
+          },
+          "metadata": {},
+          "execution_count": 8
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!git config --global user.email \"josephine.bocquet01@gmail.com\"\n",
+        "!git init\n",
+        "!git commit -m \"first commit\"\n",
+        "!git branch -M main\n",
+        "!git remote add origin https://github.com/jbocquet1/testCuSpatial.git\n",
+        "!git push -u origin main"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/"
+        },
+        "id": "S0OTRhO1xK4c",
+        "outputId": "b438c8de-87b0-4ca6-d190-225461ddfd17"
+      },
+      "execution_count": 13,
+      "outputs": [
+        {
+          "output_type": "stream",
+          "name": "stdout",
+          "text": [
+            "Reinitialized existing Git repository in /content/.git/\n",
+            "On branch main\n",
+            "\n",
+            "Initial commit\n",
+            "\n",
+            "Untracked files:\n",
+            "  (use \"git add <file>...\" to include in what will be committed)\n",
+            "\t\u001b[31m.config/\u001b[m\n",
+            "\t\u001b[31maccidentsVelo.csv\u001b[m\n",
+            "\t\u001b[31mcondacolab_install.log\u001b[m\n",
+            "\t\u001b[31mrapidsai-csp-utils/\u001b[m\n",
+            "\t\u001b[31msample_data/\u001b[m\n",
+            "\n",
+            "nothing added to commit but untracked files present (use \"git add\" to track)\n",
+            "error: remote origin already exists.\n",
+            "error: src refspec main does not match any\n",
+            "\u001b[31merror: failed to push some refs to 'https://github.com/jbocquet1/testCuSpatial.git'\n",
+            "\u001b[m"
+          ]
+        }
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import cuxfilter\n",
+        "cuxfilter.__version__"
+      ],
+      "metadata": {
+        "colab": {
+          "base_uri": "https://localhost:8080/",
+          "height": 498
+        },
+        "id": "CYjcARDFVWWD",
+        "outputId": "fb83aa01-9590-4ff2-d353-314c881c1674"
+      },
+      "execution_count": 9,
+      "outputs": [
+        {
+          "output_type": "error",
+          "ename": "ModuleNotFoundError",
+          "evalue": "No module named 'numpy.lib.array_utils'",
+          "traceback": [
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0m",
+            "\u001b[0;31mModuleNotFoundError\u001b[0m                       Traceback (most recent call last)",
+            "\u001b[0;32m<ipython-input-9-6928215a52a0>\u001b[0m in \u001b[0;36m<cell line: 1>\u001b[0;34m()\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0;32mimport\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m__version__\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;31m# Copyright (c) 2019-2023, NVIDIA CORPORATION.\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 3\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mdataframe\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mDataFrame\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      4\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mdashboard\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mDashBoard\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0m_version\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0m__git_commit__\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m__version__\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/dataframe.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      4\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mtyping\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mType\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 6\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mdashboard\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mDashBoard\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      7\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mlayouts\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0msingle_feature\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      8\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mthemes\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdefault\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/dashboard.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     11\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mcollections\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mCounter\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     12\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 13\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcharts\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mBaseChart\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mBaseWidget\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mViewDataFrame\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     14\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mlayouts\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0msingle_feature\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     15\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mcuxfilter\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcharts\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mpanel_widgets\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdata_size_indicator\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/charts/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mview_dataframe\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mconstants\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0;34m*\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 4\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mdatashader\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mline\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mscatter\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mstacked_lines\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mheatmap\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mgraph\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      5\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mdeckgl\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mchoropleth\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      6\u001b[0m from .panel_widgets import (\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/charts/datashader/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m from .datashader import (\n\u001b[0m\u001b[1;32m      2\u001b[0m     \u001b[0mscatter\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m     \u001b[0mline\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m     \u001b[0mheatmap\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m     \u001b[0mstacked_lines\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/charts/datashader/datashader.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[0;32m----> 1\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mplots\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      2\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      3\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      4\u001b[0m def scatter(\n\u001b[1;32m      5\u001b[0m     \u001b[0mx\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/charts/datashader/plots.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      5\u001b[0m     \u001b[0mBaseGraph\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      6\u001b[0m )\n\u001b[0;32m----> 7\u001b[0;31m from .custom_extensions import (\n\u001b[0m\u001b[1;32m      8\u001b[0m     \u001b[0mCustomInspectTool\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      9\u001b[0m     \u001b[0mcalc_connected_edges\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/charts/datashader/custom_extensions/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mgraph_inspect_widget\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mCustomInspectTool\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mgraph_assets\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mcalc_connected_edges\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 3\u001b[0;31m from .holoviews_datashader import (\n\u001b[0m\u001b[1;32m      4\u001b[0m     \u001b[0mInteractiveDatashaderPoints\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m     \u001b[0mInteractiveDatashaderLine\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/cuxfilter/charts/datashader/custom_extensions/holoviews_datashader.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mcudf\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdask_cudf\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 3\u001b[0;31m \u001b[0;32mimport\u001b[0m \u001b[0mdatashader\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mds\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      4\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mholoviews\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mhv\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mholoviews\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0melement\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtiles\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mtile_sources\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/datashader/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      7\u001b[0m                                         reponame=\"datashader\"))\n\u001b[1;32m      8\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 9\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mCanvas\u001b[0m                                 \u001b[0;31m# noqa (API import)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     10\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mreductions\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0;34m*\u001b[0m                                \u001b[0;31m# noqa (API import)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     11\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mglyphs\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mPoint\u001b[0m                                \u001b[0;31m# noqa (API import)\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/datashader/core.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     11\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdask\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0marray\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mda\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     12\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mpackaging\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mversion\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mVersion\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 13\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mDataArray\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mDataset\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     14\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     15\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0;34m.\u001b[0m\u001b[0mutils\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mDispatcher\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mngjit\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcalc_res\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mcalc_bbox\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0morient_array\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;31m \u001b[0m\u001b[0;31m\\\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/__init__.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mimportlib\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mmetadata\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mversion\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0m_version\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 3\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mgroupers\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtesting\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mtutorial\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      4\u001b[0m from xarray.backends.api import (\n\u001b[1;32m      5\u001b[0m     \u001b[0mload_dataarray\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/groupers.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     15\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mpandas\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mpd\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     16\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 17\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcoding\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcftime_offsets\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mBaseCFTimeOffset\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m_new_to_legacy_freq\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     18\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mduck_array_ops\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     19\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcoordinates\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mCoordinates\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m_coordinates_from_variable\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/coding/cftime_offsets.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     54\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mpackaging\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mversion\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mVersion\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     55\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 56\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcoding\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcftimeindex\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mCFTimeIndex\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0m_parse_iso8601_with_reso\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     57\u001b[0m from xarray.coding.times import (\n\u001b[1;32m     58\u001b[0m     \u001b[0m_is_standard_calendar\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/coding/cftimeindex.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     52\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mpackaging\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mversion\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mVersion\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     53\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 54\u001b[0;31m from xarray.coding.times import (\n\u001b[0m\u001b[1;32m     55\u001b[0m     \u001b[0m_STANDARD_CALENDARS\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     56\u001b[0m     \u001b[0mcftime_to_nptime\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/coding/times.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     12\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mpandas\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0merrors\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mOutOfBoundsDatetime\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mOutOfBoundsTimedelta\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     13\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 14\u001b[0;31m from xarray.coding.variables import (\n\u001b[0m\u001b[1;32m     15\u001b[0m     \u001b[0mSerializationWarning\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     16\u001b[0m     \u001b[0mVariableCoder\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/coding/variables.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     11\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mpandas\u001b[0m \u001b[0;32mas\u001b[0m \u001b[0mpd\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     12\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 13\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdtypes\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mduck_array_ops\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mindexing\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     14\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mvariable\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mVariable\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     15\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mnamedarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mparallelcompat\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mget_chunked_array_type\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/core/duck_array_ops.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     35\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mpandas\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mapi\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mtypes\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mis_extension_array_dtype\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     36\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 37\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdask_array_ops\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mdtypes\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnputils\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m     38\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0moptions\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mOPTIONS\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     39\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mutils\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mis_duck_array\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mis_duck_dask_array\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mmodule_available\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/core/dask_array_ops.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m      1\u001b[0m \u001b[0;32mfrom\u001b[0m \u001b[0m__future__\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mannotations\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      2\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m----> 3\u001b[0;31m \u001b[0;32mfrom\u001b[0m \u001b[0mxarray\u001b[0m\u001b[0;34m.\u001b[0m\u001b[0mcore\u001b[0m \u001b[0;32mimport\u001b[0m \u001b[0mdtypes\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mnputils\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0m\u001b[1;32m      4\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m      5\u001b[0m \u001b[0;34m\u001b[0m\u001b[0m\n",
+            "\u001b[0;32m/usr/local/lib/python3.10/site-packages/xarray/core/nputils.py\u001b[0m in \u001b[0;36m<module>\u001b[0;34m\u001b[0m\n\u001b[1;32m     13\u001b[0m \u001b[0;31m# remove once numpy 2.0 is the oldest supported version\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     14\u001b[0m \u001b[0;32mif\u001b[0m \u001b[0mmodule_available\u001b[0m\u001b[0;34m(\u001b[0m\u001b[0;34m\"numpy\"\u001b[0m\u001b[0;34m,\u001b[0m \u001b[0mminversion\u001b[0m\u001b[0;34m=\u001b[0m\u001b[0;34m\"2.0.0.dev0\"\u001b[0m\u001b[0;34m)\u001b[0m\u001b[0;34m:\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[0;32m---> 15\u001b[0;31m     from numpy.lib.array_utils import (  # type: ignore[import-not-found,unused-ignore]\n\u001b[0m\u001b[1;32m     16\u001b[0m         \u001b[0mnormalize_axis_index\u001b[0m\u001b[0;34m,\u001b[0m\u001b[0;34m\u001b[0m\u001b[0;34m\u001b[0m\u001b[0m\n\u001b[1;32m     17\u001b[0m     )\n",
+            "\u001b[0;31mModuleNotFoundError\u001b[0m: No module named 'numpy.lib.array_utils'",
+            "",
+            "\u001b[0;31m---------------------------------------------------------------------------\u001b[0;32m\nNOTE: If your import is failing due to a missing package, you can\nmanually install dependencies using either !pip or !apt.\n\nTo view examples of installing some common dependencies, click the\n\"Open Examples\" button below.\n\u001b[0;31m---------------------------------------------------------------------------\u001b[0m\n"
+          ],
+          "errorDetails": {
+            "actions": [
+              {
+                "action": "open_url",
+                "actionText": "Open Examples",
+                "url": "/notebooks/snippets/importing_libraries.ipynb"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "cell_type": "markdown",
+      "metadata": {
+        "id": "Dlsyk9m9NN2K"
+      },
+      "source": [
+        "# Next Steps #\n",
+        "\n",
+        "For an overview of how you can access and work with your own datasets in Colab, check out [this guide](https://towardsdatascience.com/3-ways-to-load-csv-files-into-colab-7c14fcbdcb92).\n",
+        "\n",
+        "For more RAPIDS examples, check out our RAPIDS notebooks repos:\n",
+        "1. https://github.com/rapidsai/notebooks\n",
+        "2. https://github.com/rapidsai/notebooks-contrib"
+      ]
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "QKJDD"
+      ],
+      "metadata": {
+        "id": "hsi9XoCotzOd"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import torch\n",
+        "import geopandas as gpd\n",
+        "from shapely.geometry import Polygon\n",
+        "import cuspatial\n",
+        "import pandas as pd\n",
+        "import cudf\n",
+        "import matplotlib.pyplot as plt\n",
+        "from shapely.geometry import Point\n",
+        "import hvplot.pandas\n",
+        "\n",
+        "# !pip install -q condacolab\n",
+        "import condacolab\n",
+        "# condacolab.install()\n"
+      ],
+      "metadata": {
+        "id": "9GE3Jvj8d3_M"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df = pd.read_csv(\"accidentsVelo.csv\", dtype={'Num_Acc':str,\"dep\": str,'lat': str, 'long':str})\n",
+        "df = df.dropna(subset=['lat', 'long'])"
+      ],
+      "metadata": {
+        "id": "T88m0R7EMYJ7"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "is_na = []\n",
+        "for i in df.index :\n",
+        "  if isinstance(df.loc[i,'lat'], str) and ',' in df.loc[i,'lat']:\n",
+        "    df.loc[i,'lat'] = float(df.loc[i,'lat'].replace(',','.'))#.astype(float)\n",
+        "  if isinstance(df.loc[i,'long'], str) and',' in df.loc[i,'long']:\n",
+        "    df.loc[i,'long'] = float(df.loc[i,'long'].replace(',','.'))#.astype(float)\n",
+        "  elif df.loc[i,'lat'] == '0' and df.loc[i,'long'] == '0' :\n",
+        "    is_na.append(i)\n",
+        "\n",
+        "df = df.drop(is_na)"
+      ],
+      "metadata": {
+        "id": "dUVfd785KPT9"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "df['lat'] = df['lat'].astype(float)\n",
+        "df['long'] = df['long'].astype(float)\n",
+        "df['date'] = df['date'].astype(\"string\")\n",
+        "df['dep'] = df['dep'].astype(\"string\")\n",
+        "\n",
+        "df = df[['Num_Acc','date','dep','lat','long']]\n"
+      ],
+      "metadata": {
+        "id": "6wb_nqCSOD1p"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "gdf = gpd.GeoDataFrame(\n",
+        "    df, geometry=gpd.points_from_xy(df.long, df.lat)\n",
+        ").set_crs(epsg='4326').to_crs(epsg='2154')\n",
+        "\n",
+        "# cugpdf = cuspatial.from_geopandas(gdf)\n",
+        "cuDF = cudf.DataFrame(df)"
+      ],
+      "metadata": {
+        "id": "U_ui1A9QI8l8"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "BSzQi3jKqGo0"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "cuDF.hvplot.hexbin(x='long', y='lat', geo=True, tiles=\"OSM\")"
+      ],
+      "metadata": {
+        "id": "J0u8HiBjqKnA"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "import hvplot.pandas"
+      ],
+      "metadata": {
+        "id": "Aw4fHp9brkCh"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "2ydOAdXXrmlN"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [
+        "!conda --version\n",
+        "!which conda\n"
+      ],
+      "metadata": {
+        "id": "vdFRhFzMtKWC"
+      },
+      "execution_count": null,
+      "outputs": []
+    },
+    {
+      "cell_type": "code",
+      "source": [],
+      "metadata": {
+        "id": "9mQ9zn0gtXGd"
+      },
+      "execution_count": null,
+      "outputs": []
+    }
+  ]
+}
